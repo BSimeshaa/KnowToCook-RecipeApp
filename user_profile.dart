@@ -46,10 +46,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> _loadUserProfile() async {
     try {
-      // Fetching user data from Firestore
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(widget.userId).get();
 
-      // Check if the document exists
       if (userDoc.exists) {
         print("User data fetched: ${userDoc.data()}");
         setState(() {
@@ -75,31 +73,25 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
-// Function to check if the current user is following the target user
   Future<void> _checkIfFollowing() async {
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.targetUserId)
         .get();
 
-    // Fetching followers from the target user's document
     List<dynamic> followers = userDoc['followers'] ?? [];
 
-    // Checking if the current user is in the followers list
     setState(() {
       _isFollowing = followers.contains(widget.currentUserId);
       _followersCount = followers.length;
     });
   }
 
-// Function to follow/unfollow
   Future<void> _toggleFollow() async {
     String currentUserId = widget.currentUserId;
     String targetUserId = widget.targetUserId;
 
-    // Perform the follow/unfollow operation
     if (_isFollowing) {
-      // Unfollow the user
       await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
         'followers': FieldValue.arrayRemove([currentUserId]),
       });
@@ -107,13 +99,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
         'following': FieldValue.arrayRemove([targetUserId]),
       });
 
-      // Update follower count locally
       setState(() {
         _isFollowing = false;
-        _followersCount--; // Decrement follower count by 1
+        _followersCount--;
       });
     } else {
-      // Follow the user
       await FirebaseFirestore.instance.collection('users').doc(targetUserId).update({
         'followers': FieldValue.arrayUnion([currentUserId]),
       });
@@ -121,10 +111,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         'following': FieldValue.arrayUnion([targetUserId]),
       });
 
-      // Update follower count locally
       setState(() {
         _isFollowing = true;
-        _followersCount++; // Increment follower count by 1
+        _followersCount++;
       });
     }
   }
@@ -262,9 +251,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Follower Count with Clickable Text
                       GestureDetector(
-                        onTap: _showFollowersList, // Function to show followers list
+                        onTap: _showFollowersList,
                         child: Text(
                           'Followers: $_followersCount',
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -272,7 +260,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       ),
                       SizedBox(height: 16),
 
-                      // Follow Button
                       ElevatedButton(
                         onPressed: _toggleFollow,
                         child: Text(_isFollowing ? 'Unfollow' : 'Follow'),
@@ -316,18 +303,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-// Function to show the list of followers in a bottom sheet
   void _showFollowersList() async {
-    // Fetch followers of the target user
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.targetUserId)
         .get();
 
-    // List of follower IDs
     List<dynamic> followerIds = userDoc['followers'] ?? [];
 
-    // Fetch the details of each follower
     List<String> followerNames = [];
     for (var followerId in followerIds) {
       DocumentSnapshot followerDoc = await FirebaseFirestore.instance
@@ -339,7 +322,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
       }
     }
 
-    // Show the list in a modal bottom sheet
     showModalBottomSheet(
       context: context,
       builder: (context) {
